@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
 
@@ -13,6 +15,8 @@ struct Person
     string name;
     string phoneNumber;
     string email;
+
+    
     
 };
 
@@ -21,8 +25,10 @@ struct Item {
     string ItemName;
     string description;
     double TargetedPrice;
+    double soldPrice=0.0;
     Owner *owner;
-    Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own){}
+    Bidder *newOwner;
+    Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own), newOwner(nullptr){}
 };
 
 class Owner : private Person {
@@ -51,9 +57,16 @@ public:
         ownedItems.push_back(item);
     }
     // Add an item to the list of sold items
+    // Add an item to the list of sold items
     void addSoldItem(Item* item) {
-        soldItems.push_back(item);
-    }
+    // Remove item from ownedItems if it exists
+        auto it = find(ownedItems.begin(), ownedItems.end(), item);
+        if (it != ownedItems.end()) {
+        ownedItems.erase(it);
+        }
+    // Add item to soldItems
+    soldItems.push_back(item);
+}
 
     // Display owned items
     void displayOwnedItems() const {
@@ -77,22 +90,23 @@ public:
     }
 
     
-
+    friend class AuctionSystem;
     // Friend function to access private members of Owner
     friend void displayOwnersInfo(const Owner& owner);
 };
-/**
-class Bidder: public Person{
+
+class Bidder: private Person{
     private:
     int bidderId;
     double maxBidAmount;
+    vector<Item*> boughtItems;
+
     
     public:
-     Bidder(string name, string address, string email, string phoneNumber, int bidderId, double maxBidAmount) {
+     Bidder(string name, string address, string email, string phoneNumber, double maxBidAmount) {
         this->name = name;
         this->email = email;
         this->phoneNumber = phoneNumber;
-        this->bidderId = bidderId;
         this->maxBidAmount = maxBidAmount;
     }
 
@@ -110,12 +124,82 @@ class Bidder: public Person{
     void setBidderId(int newBidderId) {this->bidderId = newBidderId;}
     void setMaxBidAmount(double newMaxBidAmount) {this->maxBidAmount = newMaxBidAmount;}
 
+    // Add an item to the list of sold items
+    void addOwnedItem(Item* item) {
+        boughtItems.push_back(item);
+    }
+    
      
     // Friend function to access private members of Owner
     friend void displayBidderInfo(const Bidder& bidder);
     
 };
 
+class AuctionSystem {
+private:
+    vector<Item*> approvedItems;
+    vector<Item*> itemsForAuction;
+    unordered_map<Item*, Bidder*> currentBids;
+
+public:
+
+    void checkAndAddOwnedItems(Owner* owner) {
+        cout << "Owned Items:" << endl;
+        for (const auto& item : owner->ownedItems) {
+            cout << "Item Name: " << item->ItemName << endl;
+            cout << "Description: " << item->description << endl;
+            cout << "Current Bid Amount: " << item->TargetedPrice << endl;
+            cout << "Press 1 to add this item to auction, or any other key to skip: ";
+            char choice;
+            cin >> choice;
+            if (choice == '1') {
+                itemsForAuction.push_back(item);
+            }
+        }
+    }
+    void addItemToAuction(Item* item) {
+        itemsForAuction.push_back(item);
+    }
+
+    void placeBid(Item* item, Bidder* bidder, double amount) {
+        if (currentBids.find(item) == currentBids.end() || currentBids[item]->getMaxBidAmount() < amount) {
+            currentBids[item] = bidder;
+            item->newOwner = bidder;
+            item->TargetedPrice = amount;
+        } else {
+            cout << "Bid amount must be higher than the current highest bid." << endl;
+        }
+    }
+
+    void endAuction() {
+        for (auto& pair : currentBids) {
+            Item* item = pair.first;
+            Bidder* winner = pair.second;
+            item->owner->addSoldItem(item);
+            winner->addOwnedItem(item);
+            item->owner = nullptr;
+            item->newOwner = winner;
+        }
+        currentBids.clear();
+    }
+
+    friend void displayItemsForAuction(const AuctionSystem& auctionSystem);
+};
+
+void displayItemsForAuction(const AuctionSystem& AS){
+        cout << "Items for Auction:" << endl;
+        for (const auto& item : AS.itemsForAuction) {
+            cout << "Item Name: " << item->ItemName << endl;
+            cout << "Description: " << item->description << endl;
+            cout << "Current Highest Bid: " << item->TargetedPrice << endl;
+            cout << endl;
+        }
+    }
+
+
+    
+
+/*
 
 class Company {
 private:
@@ -157,25 +241,13 @@ void displayOwnersInfo(const Owner& owner) {
         cout << "Owner ID: " <<owner.ownerId << endl;
         
 }
-
+*/
 
  
 
-*/
+
 
 int main(){
-    Owner ow1("kk32","ddd","ddd");
-    Item it("kkk","dddd",250,&ow1);
-    Item it2("kkksdfdsf","dsdfdfdd",250,&ow1);
-   
-
-    cout<<it2.owner->getEmail()<<endl;
-    cout<<it.owner->getEmail()<<endl;
-    ow1.addOwnedItem(&it);
-    ow1.addOwnedItem(&it);
-    ow1.displayOwnedItems();
-    ow1.addSoldItem(&it2);
-    ow1.displaySoldItems();
     
     
 
