@@ -13,36 +13,38 @@ struct Person
     string name;
     string phoneNumber;
     string email;
-    int age;
+    
 };
 
 struct Item {
-    int itemId;
-    std::string description;
-    double currentBidAmount;
-    Owner* owner;  // Pointer to Owner object
-
-    // Constructor
-    Item(int id, const std::string& desc, double bidAmount, Owner* own)
-        : itemId(id), description(desc), currentBidAmount(bidAmount), owner(own) {}
+    
+    string ItemName;
+    string description;
+    double TargetedPrice;
+    Owner *owner;
+    Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own){}
 };
 
-class Owner : public Person {
+class Owner : private Person {
 private:
-    int ownerId;
-    std::vector<Item*> ownedItems;    
-    std::vector<Item*> soldItems;
+    
+    vector<Item*> ownedItems;    
+    vector<Item*> soldItems;
 
 public:
     // Constructor
-    Owner(int id, const string& n, const string& e, const string& phone)
-        : ownerId{id},Person{n, e, phone} {}
+    Owner( const string& n, const string& e, const string& phone)
+        :Person{n, e, phone} {}
 
-    // Getter method for ownerId
-    int getOwnerId() const { return ownerId; }
-    std::string getName() const { return name; }
-    std::string getEmail() const { return email; }
-    std::string getPhoneNumber() const { return phoneNumber; }
+    // Getter methods
+    string getName() const { return this->name; }
+    string getEmail() const { return this->email; }
+    string getPhoneNumber() const { return this->phoneNumber; }
+    
+    //setters methods
+    void setName(const string& name) { this->name = name; }
+    void setEmail(const string& email) { this->email = email; }
+    void setPhoneNumber(const string& phoneNumber) { this->phoneNumber = phoneNumber; }
 
     // Add an item to the list of sold items
     void addOwnedItem(Item* item) {
@@ -55,27 +57,31 @@ public:
 
     // Display owned items
     void displayOwnedItems() const {
-        std::cout << "Owned Items:" << std::endl;
+        cout << "Owned Items:" << endl;
         for (const auto& item : ownedItems) {
-            std::cout << "Item ID: " << item->itemId << std::endl;
-            std::cout << "Description: " << item->description << std::endl;
-            std::cout << "Current Bid Amount: " << item->currentBidAmount << std::endl;
-            std::cout << std::endl;
+           cout<<"Item name: "<<item->ItemName<<endl;
+            cout << "Description: " << item->description << endl;
+            cout << "Current Bid Amount: " << item->TargetedPrice << endl;
+            cout << endl;
         }
-    }
 
-    // Display sold items
+     }
+     // Display sold items
     void displaySoldItems() const {
-        std::cout << "Sold Items:" << std::endl;
+        cout << "Sold Items:" << endl;
         for (const auto& item : soldItems) {
-            std::cout << "Item ID: " << item->itemId << std::endl;
-            std::cout << "Description: " << item->description << std::endl;
-            std::cout << "Sold Price: " << item->currentBidAmount << std::endl;
-            std::cout << std::endl;
-        }
+           cout<<"Item name: "<<item->ItemName<<endl;
+            cout << "Description: " << item->description << endl;
+            cout << "Current Bid Amount: " << item->TargetedPrice << endl;
+            cout << endl;}
     }
-};
 
+    
+
+    // Friend function to access private members of Owner
+    friend void displayOwnersInfo(const Owner& owner);
+};
+/**
 class Bidder: public Person{
     private:
     int bidderId;
@@ -90,71 +96,88 @@ class Bidder: public Person{
         this->maxBidAmount = maxBidAmount;
     }
 
-    // Getter and setter for 'email'
-    string getName() const {
-        return name;
-    }
+    // Getters
+    string getName() const {return this->name;}
+    string getEmail() const {return this->email;}
+    string getPhoneNumber() const {return this->phoneNumber;}
+    int getBidderId() const {return this->bidderId;}
+    double getMaxBidAmount() const {return this->maxBidAmount;}
 
-    void setName(const string& newName) {
-        name = newName;
-    }
+    // Setters
+    void setName(const string& newName) { this->name = newName;}
+    void setEmail(const string& newEmail) { this->email = newEmail;}
+    void setPhoneNumber(const string& newPhoneNumber) {this->phoneNumber = newPhoneNumber;}
+    void setBidderId(int newBidderId) {this->bidderId = newBidderId;}
+    void setMaxBidAmount(double newMaxBidAmount) {this->maxBidAmount = newMaxBidAmount;}
 
-    // Getter and setter for 'email'
-    std::string getEmail() const {
-        return email;
-    }
-
-    void setEmail(const string& newEmail) {
-        email = newEmail;
-    }
-
-    // Getter and setter for 'phoneNumber'
-    std::string getPhoneNumber() const {
-        return phoneNumber;
-    }
-
-    void setPhoneNumber(const string& newPhoneNumber) {
-        phoneNumber = newPhoneNumber;
-    }
-
-    // Getter and setter for 'bidderId'
-    int getBidderId() const {
-        return bidderId;
-    }
-
-    void setBidderId(int newBidderId) {
-        bidderId = newBidderId;
-    }
-
-    // Getter and setter for 'maxBidAmount'
-    double getMaxBidAmount() const {
-        return maxBidAmount;
-    }
-
-    void setMaxBidAmount(double newMaxBidAmount) {
-        maxBidAmount = newMaxBidAmount;
-    }
+     
+    // Friend function to access private members of Owner
+    friend void displayBidderInfo(const Bidder& bidder);
     
 };
 
+
+class Company {
+private:
+    string companyName;
+    double targetFee;
+    vector<Item*> items;
+    vector<Owner*> ItemOwners;
+    vector<Bidder*> Bidders;
+
+public:
+    // Constructor
+    Company(const string& name) : companyName(name), targetFee(1.5) {}
+    
+    
+
+     
+    
+};
+
+class Auction {
+private:
+    Item item;
+    
+
+};
+
+// Friend function implementation for Bidder&Owner
+void displayBidderInfo(const Bidder& bidder) { 
+        cout << "Bidder Name: " << bidder.name << endl;
+        cout << "Bidder Email: " << bidder.email << endl;
+        cout << "Bidder Phone Number: " << bidder.phoneNumber << endl;
+        cout << "Bidder ID: " << bidder.bidderId << endl;
+        cout << "Bidder Max Bid Amount: " << bidder.maxBidAmount << endl;
+}
+void displayOwnersInfo(const Owner& owner) { 
+        cout << "Owner Name: " << owner.name << endl;
+        cout << "Owner Email: " << owner.email << endl;
+        cout << "Owner Phone Number: " << owner.phoneNumber << endl;
+        cout << "Owner ID: " <<owner.ownerId << endl;
+        
+}
+
+
+ 
+
+*/
+
 int main(){
-    Bidder b1("ali", "skfjslkdf","email","465565",5, 555.2);
-    cout<<b1.getName()<<endl;
-    b1.setName("alia");
-    cout<<b1.getName()<<endl;
-    Owner owner1(1,"a","5555","444");
-    Item it1(101,"shule",252,&owner1);
-    Item it2(2102,"shule2",252,&owner1);
+    Owner ow1("kk32","ddd","ddd");
+    Item it("kkk","dddd",250,&ow1);
+    Item it2("kkksdfdsf","dsdfdfdd",250,&ow1);
+   
 
-    owner1.addOwnedItem(&it1);
-    owner1.addOwnedItem(&it2);
-    owner1.displayOwnedItems();
-    owner1.addSoldItem(&it2);
-    owner1.displaySoldItems();
-
-
-
-
+    cout<<it2.owner->getEmail()<<endl;
+    cout<<it.owner->getEmail()<<endl;
+    ow1.addOwnedItem(&it);
+    ow1.addOwnedItem(&it);
+    ow1.displayOwnedItems();
+    ow1.addSoldItem(&it2);
+    ow1.displaySoldItems();
+    
+    
 
     return 0;
 };
