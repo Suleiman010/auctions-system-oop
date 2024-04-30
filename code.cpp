@@ -5,8 +5,9 @@
 using namespace std;
 
 
-class Bidder;
+class AuctionSystem;
 class Owner;
+class Bidder;
 struct Person;
 struct Item;
 
@@ -95,6 +96,7 @@ public:
     friend void displayOwnersInfo(const Owner& owner);
 };
 
+
 class Bidder: private Person{
     private:
     int bidderId;
@@ -114,14 +116,14 @@ class Bidder: private Person{
     string getName() const {return this->name;}
     string getEmail() const {return this->email;}
     string getPhoneNumber() const {return this->phoneNumber;}
-    int getBidderId() const {return this->bidderId;}
+    //int getBidderId() const {return this->bidderId;}
     double getMaxBidAmount() const {return this->maxBidAmount;}
 
     // Setters
     void setName(const string& newName) { this->name = newName;}
     void setEmail(const string& newEmail) { this->email = newEmail;}
     void setPhoneNumber(const string& newPhoneNumber) {this->phoneNumber = newPhoneNumber;}
-    void setBidderId(int newBidderId) {this->bidderId = newBidderId;}
+    //void setBidderId(int newBidderId) {this->bidderId = newBidderId;}
     void setMaxBidAmount(double newMaxBidAmount) {this->maxBidAmount = newMaxBidAmount;}
 
     // Add an item to the list of sold items
@@ -129,9 +131,8 @@ class Bidder: private Person{
         boughtItems.push_back(item);
     }
     
-     
-    // Friend function to access private members of Owner
-    friend void displayBidderInfo(const Bidder& bidder);
+    
+    void placeBid(AuctionSystem& auctionSystem, Item* item, double amount);
     
 };
 
@@ -196,7 +197,14 @@ void displayItemsForAuction(const AuctionSystem& AS){
         }
     }
 
-
+void Bidder::placeBid(AuctionSystem& auctionSystem, Item* item, double amount) {
+    if (amount < 0) {
+        cout << "Bid amount cannot be negative." << endl;
+        return;
+    }
+    this->maxBidAmount -= amount;
+    auctionSystem.placeBid(item, this, amount);
+}
     
 
 /*
@@ -249,7 +257,14 @@ void displayOwnersInfo(const Owner& owner) {
 
 int main(){
     
-    
+    AuctionSystem as;
+    Owner ow1("suleiman", "sss@gmail.com","55525552");
+    Item it("ss","xxxxxxxxx",250.0,&ow1);
+    Item it1("sds","xxxxxdddxxxx",250.0,&ow1);
+    ow1.addOwnedItem(&it);
+    ow1.addOwnedItem(&it1);
+    as.checkAndAddOwnedItems(&ow1);
+
 
     return 0;
 };
