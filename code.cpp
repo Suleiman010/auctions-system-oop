@@ -28,8 +28,8 @@ struct Item {
     double TargetedPrice;
     double soldPrice=0.0;
     Owner *owner;
-    Bidder *newOwner;
-    Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own), newOwner(nullptr){}
+    Bidder *newOwner = nullptr;
+    Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own){}
 };
 
 class Owner : private Person {
@@ -173,16 +173,18 @@ public:
     }
 
     void endAuction() {
-        for (auto& pair : currentBids) {
-            Item* item = pair.first;
-            Bidder* winner = pair.second;
+    for (auto& pair : currentBids) {
+        Item* item = pair.first;
+        Bidder* winner = pair.second;
+        if (item && winner && item->owner) {
             item->owner->addSoldItem(item);
             winner->addOwnedItem(item);
-            item->owner = nullptr;
             item->newOwner = winner;
+            item->owner = nullptr;
         }
-        currentBids.clear();
     }
+    currentBids.clear();
+}
 
     friend void displayItemsForAuction(const AuctionSystem& auctionSystem);
 };
@@ -207,52 +209,6 @@ void Bidder::placeBid(AuctionSystem& auctionSystem, Item* item, double amount) {
 }
     
 
-/*
-
-class Company {
-private:
-    string companyName;
-    double targetFee;
-    vector<Item*> items;
-    vector<Owner*> ItemOwners;
-    vector<Bidder*> Bidders;
-
-public:
-    // Constructor
-    Company(const string& name) : companyName(name), targetFee(1.5) {}
-    
-    
-
-     
-    
-};
-
-class Auction {
-private:
-    Item item;
-    
-
-};
-
-// Friend function implementation for Bidder&Owner
-void displayBidderInfo(const Bidder& bidder) { 
-        cout << "Bidder Name: " << bidder.name << endl;
-        cout << "Bidder Email: " << bidder.email << endl;
-        cout << "Bidder Phone Number: " << bidder.phoneNumber << endl;
-        cout << "Bidder ID: " << bidder.bidderId << endl;
-        cout << "Bidder Max Bid Amount: " << bidder.maxBidAmount << endl;
-}
-void displayOwnersInfo(const Owner& owner) { 
-        cout << "Owner Name: " << owner.name << endl;
-        cout << "Owner Email: " << owner.email << endl;
-        cout << "Owner Phone Number: " << owner.phoneNumber << endl;
-        cout << "Owner ID: " <<owner.ownerId << endl;
-        
-}
-*/
-
- 
-
 
 
 int main(){
@@ -263,7 +219,33 @@ int main(){
     Item it1("sds","xxxxxdddxxxx",250.0,&ow1);
     ow1.addOwnedItem(&it);
     ow1.addOwnedItem(&it1);
-    as.checkAndAddOwnedItems(&ow1);
+    as.addItemToAuction(&it);
+    displayItemsForAuction(as);
+    Bidder b1 ("nnn","ddddd","dfkgkdfjg","5454454544",500);
+    b1.placeBid(as,&it,300);
+    cout<<""<<endl;
+    displayItemsForAuction(as);
+
+
+
+    cout<<it.owner->getName()<<endl;
+
+    cout<<""<<endl;
+    as.endAuction();
+
+    cout<<it.newOwner->getName()<<endl;
+    cout<<""<<endl;
+
+    ow1.displayOwnedItems();
+    
+    
+
+
+    /*while (true)
+    {
+       
+    }*/
+    
 
 
     return 0;
