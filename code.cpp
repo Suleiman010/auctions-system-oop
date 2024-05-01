@@ -17,10 +17,13 @@ struct Person
     string phoneNumber;
     string email;
 
-    virtual void displayInfo() const {
+    virtual void displayInfo()  {
         cout << "Name: " << name << endl;
         cout << "Phone Number: " << phoneNumber << endl;
         cout << "Email: " << email << endl;
+    }
+    virtual void addOwnedItem(Item* item) {
+        "This function will be used by both the owner and the bidder to add the items that is owned by them";
     }
     
 };
@@ -34,6 +37,8 @@ struct Item {
     Owner *owner;
     Bidder *newOwner = nullptr;
     Item(string n, string desc, double TP, Owner *own): ItemName(n), description(desc), TargetedPrice(TP),owner(own){}
+
+    void outBitid (double returnAmount);
 };
 
 class Owner : private Person {
@@ -64,7 +69,7 @@ public:
     void setPhoneNumber(const string& phoneNumber) { this->phoneNumber = phoneNumber; }
 
     // Add an item to the list of sold items
-    void addOwnedItem(Item* item) {
+    void addOwnedItem(Item* item) override {
         ownedItems.push_back(item);
     }
     // Add an item to the list of sold items
@@ -83,25 +88,26 @@ public:
     void displayOwnedItems() const {
         cout << "Owned Items:" << endl;
         for (const auto& item : ownedItems) {
-           cout<<"Item name: "<<item->ItemName<<endl;
+            cout<<"Item name: "<<item->ItemName<<endl;
             cout << "Description: " << item->description << endl;
-            cout << "Current Bid Amount: " << item->TargetedPrice << endl;
+            cout << "Target price: " << item->TargetedPrice << endl;
             cout << endl;
         }
 
      }
      // Display sold items
     void displaySoldItems() const {
-        cout << "Sold Items:" << endl;
-        for (const auto& item : soldItems) {
-           cout<<"Item name: "<<item->ItemName<<endl;
-            cout << "Description: " << item->description << endl;
-            cout << "Current Bid Amount: " << item->TargetedPrice << endl;
-            cout << endl;}
+    cout << "Sold Items:" << endl;
+    for (const auto& item : soldItems) {
+        cout << "Item name: " << item->ItemName << endl;
+        cout << "Description: " << item->description << endl;
+        cout << "Sold Price: " << item->soldPrice << endl;
+        cout << endl;
     }
+}
 
     // Override the displayInfo method
-    void displayInfo() const override {
+    void displayInfo()  override {
         cout << "Owner Information:" << endl;
         Person::displayInfo(); // Call base class displayInfo
         cout << "Wallet: $" << wallet << endl;
@@ -115,12 +121,12 @@ public:
     friend class AuctionSystem;
     };
 
-    int Owner::ownerCount = 0;
+int Owner::ownerCount = 0;
 
 
 class Bidder: private Person{
     private:
-    int bidderId;
+    //int bidderId;
     double maxBidAmount;
     vector<Item*> boughtItems;
     static int bidderCount;
@@ -140,7 +146,7 @@ class Bidder: private Person{
     string getEmail() const {return this->email;}
     string getPhoneNumber() const {return this->phoneNumber;}
     //int getBidderId() const {return this->bidderId;}
-    double getMaxBidAmount() const {return this->maxBidAmount;}
+    double getMaxBidAmount()  {return this->maxBidAmount;}
 
     // Setters
     void setName(const string& newName) { this->name = newName;}
@@ -149,24 +155,37 @@ class Bidder: private Person{
     //void setBidderId(int newBidderId) {this->bidderId = newBidderId;}
     void setMaxBidAmount(double newMaxBidAmount) {this->maxBidAmount = newMaxBidAmount;}
 
-    void displayInfo() const override {
+    void displayInfo() override {
         cout << "Bidder Info:" << endl;
         Person::displayInfo();
         cout << "Wallet: $ " << maxBidAmount << endl;
         cout << endl;
     }
 
-    // Add an item to the list of sold items
-    void addOwnedItem(Item* item) {
+    // Add the item the user bought to the bought_item list
+    void addOwnedItem(Item* item) override{
         boughtItems.push_back(item);
+    }
+     // Display bought items
+    void displayBoughtItems()  {
+        cout << "bought Items:" << endl;
+        for (const auto& item : boughtItems) {
+           cout<<"Item name: "<<item->ItemName<<endl;
+            cout << "Description: " << item->description << endl;
+            cout << "bought for: " << item->soldPrice << endl;
+            cout << endl;}
     }
     
     
     void placeBid(AuctionSystem& auctionSystem, Item* item, double amount);
+    void outBitid (double returnAmount){
+        this->maxBidAmount += returnAmount;
+    }
 
     static int getBidderCount() {
         return bidderCount;
     }
+    friend class AuctionSystem;
     
 };
 int Bidder::bidderCount = 0;
@@ -198,13 +217,18 @@ public:
     }
 
     void placeBid(Item* item, Bidder* bidder, double amount) {
-        if (currentBids.find(item) == currentBids.end() || currentBids[item]->getMaxBidAmount() < amount) {
-            currentBids[item] = bidder;
+       // currentBids.insert_or_assign(item, item->newOwner);
+         if (currentBids.find(item) == currentBids.end()) {
+            
+            if(item->newOwner!=nullptr){
+                item->newOwner->maxBidAmount = item->newOwner->maxBidAmount + item->soldPrice;
+            }
+            
             item->newOwner = bidder;
             item->soldPrice = amount;
-        } else {
-            cout << "Bid amount must be higher than the current highest bid." << endl;
+            
         }
+            
     }
 
     void endAuction() {
@@ -218,12 +242,13 @@ public:
             item->newOwner = winner;
             item->owner = nullptr;
         }
+
     }
     currentBids.clear();
 }
 
     void endAuction(Item* item) {
-    auto it = currentBids.find(item);
+   /* auto it = currentBids.find(item);
     if (it != currentBids.end()) {
         Bidder* winner = it->second;
         if (item && winner && item->owner) {
@@ -234,6 +259,13 @@ public:
             item->owner = nullptr;
             currentBids.erase(it);
         }
+    }*/
+
+    if(item->newOwner!=nullptr){
+        item->owner->wallet += item->soldPrice;
+        item->owner->addSoldItem(item);
+        item->newOwner->addOwnedItem(item);
+        item->owner = nullptr;
     }
 }
 
@@ -245,8 +277,8 @@ void displayItemsForAuction(const AuctionSystem& AS){
         for (const auto& item : AS.itemsForAuction) {
             cout << "Item Name: " << item->ItemName << endl;
             cout << "Description: " << item->description << endl;
-            cout << "Current Highest Bid: " << item->TargetedPrice << endl;
-            cout << endl;
+            cout << "Current Highest Bid: " << item->soldPrice << endl;
+            cout << "***************************"<<endl;
         }
     }
 
@@ -258,66 +290,108 @@ void Bidder::placeBid(AuctionSystem& auctionSystem, Item* item, double amount) {
         cout<<"The amount your willing to bid is more than you budget";
         return;
     }else if(amount<=item->soldPrice){
-        cout << "Bid amount must be higher than the current highest bid." << endl;
+        cout << "Bid amount must be higher than the current highest bid-------." << endl;
         return;
+    }else if(item->newOwner ==this ){
+        cout<<"You made the last bid"<<endl;
+
     }
-    this->maxBidAmount -= amount;
+    else{
+        this->maxBidAmount -= amount;
     auctionSystem.placeBid(item, this, amount);
+    }
 }
+
     
 
 
 
 int main(){
-    
+    //create auction class
     AuctionSystem as;
+    
+    // create owneres
     Owner ow1("suleiman", "sss@gmail.com","55525552");
-    Item it("ss","xxxxxxxxx",250.0,&ow1);
-    Item it1("sds","xxxxxdddxxxx",250.0,&ow1);
-    ow1.addOwnedItem(&it);
+    Owner ow2("ali", "ss225s@gmail.com","55525152");
+    
+    //show the owners informations
+    ow1.displayInfo();
+    ow2.displayInfo();
+
+    //create items and specify owners
+    Item it1("Iphone 2","an Old Iphone 2",25.0,&ow1);
+    Item it2("caclulus book","thomas claculus book 2nd ed used for 3 years.",7.0,&ow1);
+    Item it3("Ps4","Ps4 slim It has for games, I am selling it because I bought ps5",175.0,&ow2);
+    
+    // the Itmes will now be added to the owned list in the owner class
     ow1.addOwnedItem(&it1);
-    as.addItemToAuction(&it);
-    as.addItemToAuction(&it1);
-    displayItemsForAuction(as);
-    Bidder b1 ("n1","ddddd","dfkgkdfjg","5454454544",500);
-    Bidder b2 ("n2","ddddd","dfkgkdfjg","5454454544",500);
-    Bidder b3 ("n3","ddddd","dfkgkdfjg","5454454544",500);
-    b1.placeBid(as,&it,300);
-    b2.placeBid(as,&it,450);
-    b3.placeBid(as,&it1,500);
-    cout<<""<<endl;
-    displayItemsForAuction(as);
-
-   
-
-
-
-    cout<<it.owner->getName()<<endl;
-
-    cout<<""<<endl;
-    as.endAuction(&it);
-
-    cout<<it.newOwner->getName()<<endl;
-    cout<<""<<endl;
+    ow1.addOwnedItem(&it2);
+    ow2.addOwnedItem(&it3);
 
     ow1.displayOwnedItems();
+    ow2.displayOwnedItems();
+
+    //adding Items to auctions
+    as.addItemToAuction(&it1);
+    as.addItemToAuction(&it2);
+    as.addItemToAuction(&it3);
+
+    //check if the auction created
+    displayItemsForAuction(as);
+
+    //create Bidders
+    Bidder b1 ("n1","ddddd","dfkgkdfjg","5454454544",500.0);
+    Bidder b2 ("n2","ddddd","dfkgkdfjg","5454574",500.0);
+    Bidder b3 ("n3","ddd","dkdfjg","5454564",500.0);
     
-    cout<<Bidder::getBidderCount()<<endl;
-    cout<<Owner::getOwnerCount()<<endl;
-
-    as.endAuction();
-
+    //diplay bidders info
+    b1.displayInfo();
+    b2.displayInfo();
     b3.displayInfo();
+
+    //place bids by bidders
+    b1.placeBid(as,&it1,26.0);
+    b2.placeBid(as,&it2,9.0);
+    b3.placeBid(as,&it2,10.0);
+    b1.placeBid(as,&it3,170);
+    b1.placeBid(as,&it2,31);
+    b2.placeBid(as,&it1,32.50);
+
+    // end auctions
+    as.endAuction(&it1);
+    as.endAuction(&it2);
+    as.endAuction(&it3);
+
+    
+    //show the bidders owned list
+    b1.displayBoughtItems();
+    b2.displayBoughtItems();
+    b3.displayBoughtItems();
+
+    //show number of bidder and owners
+    cout<<"*********"<<endl;
+    cout<<"num of bidders: "<<Bidder::getBidderCount()<<endl;
+    cout<<"num of owners: "<<Owner::getOwnerCount()<<endl;
+
+    
+
+    //diplay bidders info
+    b1.displayInfo();
+    b2.displayInfo();
+    b3.displayInfo();
+    cout<<"*********"<<endl;
+
+    //display owners info
     ow1.displayInfo();
-    
+    ow2.displayInfo();
+    cout<<"*********"<<endl;
 
+    ow1.displaySoldItems();
+    ow2.displaySoldItems();
+    cout<<"*********"<<endl;
 
-    /*while (true)
-    {
-       
-    }*/
-    
-
-
+    cout<<b1.getMaxBidAmount()<<endl;
+    cout<<b2.getMaxBidAmount()<<endl;
+    cout<<b3.getMaxBidAmount()<<endl;
     return 0;
 };

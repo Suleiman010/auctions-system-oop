@@ -3,4 +3,35 @@
 ## An auction is a system of buying and selling goods or services by offering 
 ##them for bidding—allowing people to bid and selling to the highest bidder.
 
-##The bidders compete against each other, with each subsequent bid being higher than the previous bid.
+
+## classess
+a-Owner
+b-Bidder
+c-AuctionSystem
+
+## structures
+a-Person
+b-Item
+
+#Person is a superclass and Owner-Bidder are subclassess
+
+##virtual functions:
+a-virtual void displayInfo() line20
+b-virtual void addOwnedItem(Item* item) line 24
+
+##override functions
+a- void addOwnedItem(Item* item) override line 70
+b- void addOwnedItem(Item* item) override  line 163
+
+##overloading functions
+a-void endAuction()
+b-void endAuction(Item* item)
+
+# constructers are in class owner - bidder and structure Item
+
+## static functions
+a- static int getOwnerCount() line 113
+b- static int getBidderCount() line 170
+
+
+## pointers: every variable or objecct with * in  its decleration
