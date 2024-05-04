@@ -23,9 +23,6 @@ b-virtual void addOwnedItem(Item* item) line 24
 a- void addOwnedItem(Item* item) override line 70
 b- void addOwnedItem(Item* item) override  line 163
 
-##overloading functions
-a-void endAuction()
-b-void endAuction(Item* item)
 
 # constructers are in class owner - bidder and structure Item
 
@@ -35,3 +32,5 @@ b- static int getBidderCount() line 170
 
 
 ## pointers: every variable or objecct with * in  its decleration
+
+note: some changes will be applied to class AuctionSystem

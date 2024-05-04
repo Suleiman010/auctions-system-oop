@@ -72,6 +72,7 @@ public:
     void addOwnedItem(Item* item) override {
         ownedItems.push_back(item);
     }
+    
     // Add an item to the list of sold items
     void addSoldItem(Item* item) {
     // Remove item from ownedItems if it exists
@@ -210,6 +211,7 @@ public:
     void endAuction() {
     for (auto& item : ItemForBidd) {
         if(item->newOwner!=nullptr){
+        taxIfReachedTarget(item);
         item->owner->wallet += item->soldPrice;
         item->owner->addSoldItem(item);
         item->newOwner->addOwnedItem(item);
@@ -220,15 +222,25 @@ public:
     ItemForBidd.clear();
 }
 
+
+
 // end auction for a spicefic item
     void endAuction(Item* item) {
     if(item->newOwner!=nullptr){
+        taxIfReachedTarget(item);
         item->owner->wallet += item->soldPrice;
         item->owner->addSoldItem(item);
         item->newOwner->addOwnedItem(item);
         item->owner = nullptr;
     }
 }
+    void taxIfReachedTarget(Item* item, double tax = 0.08){
+        if(item->soldPrice >= item->TargetedPrice){
+            item->soldPrice = item->soldPrice - item->soldPrice * tax;
+        }else{
+            return;
+        }
+    }
     //friend function
     friend void displayItemsForAuction(const AuctionSystem& auctionSystem);
 };
